@@ -1,12 +1,18 @@
 {
   "name": "hazel",
   "version": "1.0.0",
-  "description": "## Description Hazel",
-  "main": "script.js",
+  "description": "A 2D platformer game with infinite scrolling",
+  "main": "dist/game.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc",
+    "watch": "tsc -w",
+    "start": "npm run build && live-server"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
 }
