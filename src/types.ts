@@ -10,4 +10,9 @@ export interface Physics {
 export interface Keys {
     left: boolean;
     right: boolean;
+}
+
+export interface Sprite {
+    width: number;
+    height: number;
 } 

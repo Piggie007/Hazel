@@ -1,4 +1,4 @@
-import { Physics, Keys } from './types';
+import { Physics, Keys, Sprite } from './types';
 
 class Game {
     private player: HTMLElement;
@@ -12,6 +12,9 @@ class Game {
     private worldOffsetY: number;
     private physics: Physics;
     private keys: Keys;
+    private sprite: Sprite;
+    private isFacingLeft: boolean;
+    private readonly PHYSICS_HEIGHT = 50; // Height used for physics calculations
 
     constructor() {
         const playerElement = document.getElementById('player');
@@ -23,11 +26,17 @@ class Game {
 
         this.player = playerElement;
         this.gameContainer = containerElement;
-        this.posX = window.innerWidth / 2 - 25;
-        this.posY = window.innerHeight / 2;
+        this.sprite = {
+            width: 50,
+            height: 50
+        };
+        
+        this.posX = window.innerWidth / 2 - this.sprite.width / 2;
+        this.posY = window.innerHeight - this.sprite.height;
         this.velocityX = 0;
         this.velocityY = 0;
         this.isJumping = false;
+        this.isFacingLeft = false;
         this.worldOffsetX = 0;
         this.worldOffsetY = 0;
 
@@ -51,15 +60,27 @@ class Game {
     }
 
     private init(): void {
-        this.physics.groundLevel = window.innerHeight - 50;
+        // Set ground level using PHYSICS_HEIGHT
+        this.physics.groundLevel = window.innerHeight - this.PHYSICS_HEIGHT;
         this.posY = this.physics.groundLevel;
         this.updatePlayerPosition();
     }
 
     private updatePlayerPosition(): void {
-        const centerX = window.innerWidth / 2 - 25;
+        const centerX = window.innerWidth / 2 - this.sprite.width / 2;
+        
+        // Adjust visual position to account for sprite size difference
+        const visualOffset = this.sprite.height - this.PHYSICS_HEIGHT;
         this.player.style.left = `${centerX}px`;
-        this.player.style.top = `${this.posY}px`;
+        this.player.style.top = `${this.posY - visualOffset}px`;
+
+        if (this.velocityX < 0 && !this.isFacingLeft) {
+            this.isFacingLeft = true;
+            this.player.classList.add('facing-left');
+        } else if (this.velocityX > 0 && this.isFacingLeft) {
+            this.isFacingLeft = false;
+            this.player.classList.remove('facing-left');
+        }
 
         this.worldOffsetX -= this.velocityX;
         this.gameContainer.style.backgroundPosition = `${this.worldOffsetX}px ${this.worldOffsetY}px`;
@@ -81,13 +102,15 @@ class Game {
         this.velocityY += this.physics.gravity;
         this.posY += this.velocityY;
 
+        // Ground collision check
         if (this.physics.groundLevel !== null && this.posY >= this.physics.groundLevel) {
             this.posY = this.physics.groundLevel;
             this.velocityY = 0;
             this.isJumping = false;
         }
 
-        this.posY = Math.max(0, Math.min(this.posY, this.physics.groundLevel || window.innerHeight));
+        // Ensure we don't go above the screen or below ground level
+        this.posY = Math.max(0, Math.min(this.posY, this.physics.groundLevel || window.innerHeight - this.sprite.height));
 
         this.updatePlayerPosition();
         requestAnimationFrame(this.gameLoop);
